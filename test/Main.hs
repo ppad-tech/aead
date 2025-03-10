@@ -14,7 +14,7 @@ import qualified Test.Tasty.HUnit as H
 main :: IO ()
 main = defaultMain $ testGroup "ppad-aead" [
     poly1305_key_gen
-  , encrypt
+  , crypt
   ]
 
 poly1305_key_gen :: TestTree
@@ -27,11 +27,11 @@ poly1305_key_gen = H.testCase "poly1305_key_gen" $ do
       Just e = B16.decode
         "8ad5a08b905f81cc815040274ab29471a833b637e3fd0da508dbb8e2fdd1a646"
 
-      o = AEAD.poly1305_key_gen key non
+      o = AEAD._poly1305_key_gen key non
   H.assertEqual mempty e o
 
-encrypt :: TestTree
-encrypt = H.testCase "encrypt" $ do
+crypt :: TestTree
+crypt = H.testCase "encrypt/decrypt" $ do
     let (o_cip, o_tag) = AEAD.encrypt aad key iv salt sunscreen
 
         e_cip = fromJust . B16.decode $
@@ -40,7 +40,12 @@ encrypt = H.testCase "encrypt" $ do
         e_tag = fromJust . B16.decode $
           "1ae10b594f09e26a7e902ecbd0600691"
 
+        o_dec = AEAD.decrypt aad key iv salt (o_cip, o_tag)
+        o_fal = AEAD.decrypt aad key iv salt (o_cip, BS.replicate 16 0)
+
     H.assertEqual mempty (e_cip, e_tag) (o_cip, o_tag)
+    H.assertEqual mempty (Right sunscreen) o_dec
+    H.assertEqual mempty (Left sunscreen) o_fal
   where
     sunscreen :: BS.ByteString
     sunscreen = fromJust . B16.decode $
@@ -52,5 +57,4 @@ encrypt = H.testCase "encrypt" $ do
 
     iv = fromJust . B16.decode $ "4041424344454647"
     salt = fromJust . B16.decode $ "07000000"
-
 
