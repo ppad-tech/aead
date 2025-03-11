@@ -64,7 +64,7 @@ _poly1305_key_gen key@(BI.PS _ _ l) nonce
 
 pad16 :: BS.ByteString -> BS.ByteString
 pad16 (BI.PS _ _ l)
-  | l == 16   = mempty
+  | l `rem` 16 == 0 = mempty
   | otherwise = BS.replicate (16 - l `rem` 16) 0
 {-# INLINE pad16 #-}
 
@@ -98,10 +98,8 @@ encrypt aad key nonce plaintext
   | otherwise =
       let otk = _poly1305_key_gen key nonce
           cip = ChaCha20.cipher key 1 nonce plaintext
-          md0 | BS.length aad == 0 = mempty
-              | otherwise          = aad <> pad16 aad
-          md1 | BS.length cip == 0 = md0
-              | otherwise          = md0 <> cip <> pad16 cip
+          md0 = aad <> pad16 aad
+          md1 = md0 <> cip <> pad16 cip
           md2 = md1 <> unroll8 (fi (BS.length aad))
           md3 = md2 <> unroll8 (fi (BS.length cip))
           tag = Poly1305.mac otk md3
@@ -132,10 +130,8 @@ decrypt aad key nonce (cip, mac)
   | BS.length mac /= 16   = Nothing
   | otherwise =
       let otk = _poly1305_key_gen key nonce
-          md0 | BS.length aad == 0 = mempty
-              | otherwise          = aad <> pad16 aad
-          md1 | BS.length cip == 0 = md0
-              | otherwise          = md0 <> cip <> pad16 cip
+          md0 = aad <> pad16 aad
+          md1 = md0 <> cip <> pad16 cip
           md2 = md1 <> unroll8 (fi (BS.length aad))
           md3 = md2 <> unroll8 (fi (BS.length cip))
           tag = Poly1305.mac otk md3
