@@ -124,8 +124,11 @@ execute W.AEADTest {..} = H.testCase t_msg $ do
         Right Nothing  -> H.assertBool "invalid (bogus MAC)" True
         Right (Just o) -> H.assertBool "invalid" (msg /= o)
     else do
-      let out = AEAD.decrypt aad key iv (ct, tag)
-      H.assertEqual mempty (Just msg) out
+      let (out_cip, out_mac) = AEAD.encrypt aad key iv msg
+          out_pan = AEAD.decrypt aad key iv (ct, tag)
+      H.assertEqual mempty ct out_cip
+      H.assertEqual mempty tag out_mac
+      H.assertEqual mempty (Just msg) out_pan
   where
     t_msg = "test " <> show aeadt_tcId
 
