@@ -1,7 +1,17 @@
+{-# OPTIONS_HADDOCK prune #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
+
+-- |
+-- Module: Crypto.AEAD.ChaCha20Poly1305
+-- Copyright: (c) 2025 Jared Tobin
+-- License: MIT
+-- Maintainer: Jared Tobin <jared@ppad.tech>
+--
+-- A pure AEAD-ChaCha20-Poly1305 implementation, as specified by
+-- [RFC 8439](https://datatracker.ietf.org/doc/html/rfc8439).
 
 module Crypto.AEAD.ChaCha20Poly1305 (
     -- * AEAD construction
@@ -58,20 +68,33 @@ pad16 (BI.PS _ _ l) = BS.replicate (16 - l `rem` 16) 0
 
 -- RFC8439 2.8
 
+-- | Perform authenticated encryption on a plaintext and some additional
+--   authenticated data, given a 256-bit key and 96-bit nonce, using
+--   AEAD-ChaCha20-Poly1305.
+--
+--   Produces a ciphertext and 128-bit message authentication code pair.
+--
+--   Providing an invalid key or nonce will result in an 'ErrorCall'
+--   exception being thrown.
+--
+--   >>> let key = "don't tell anyone my secret key!"
+--   >>> let non = "or my nonce!"
+--   >>> let pan = "and here's my plaintext"
+--   >>> let aad = "i approve this message"
+--   >>> let (cip, mac) = encrypt aad key nonce pan
+--   >>> (cip, mac)
+--   <(ciphertext, 128-bit MAC)>
 encrypt
   :: BS.ByteString -- ^ arbitrary-length additional authenticated data
   -> BS.ByteString -- ^ 256-bit key
-  -> BS.ByteString -- ^ 64-bit initial value (IV)
-  -> BS.ByteString -- ^ 32-bit salt
+  -> BS.ByteString -- ^ 96-bit nonce
   -> BS.ByteString -- ^ arbitrary-length plaintext
   -> (BS.ByteString, BS.ByteString) -- ^ (ciphertext, 128-bit MAC)
-encrypt aad key iv salt plaintext
-  | BS.length key  /= 32 = error "ppad-aead (encrypt): invalid key"
-  | BS.length iv   /= 8  = error "ppad-aead (encrypt): invalid IV"
-  | BS.length salt /= 4  = error "ppad-aead (encrypt): invalid salt"
+encrypt aad key nonce plaintext
+  | BS.length key  /= 32  = error "ppad-aead (encrypt): invalid key"
+  | BS.length nonce /= 12 = error "ppad-aead (encrypt): invalid nonce"
   | otherwise =
-      let nonce = salt <> iv
-          otk   = _poly1305_key_gen key nonce
+      let otk   = _poly1305_key_gen key nonce
           ciphertext = ChaCha20.cipher key 1 nonce plaintext
           md0 = aad <> pad16 aad
           md1 = md0 <> ciphertext <> pad16 ciphertext
@@ -80,17 +103,37 @@ encrypt aad key iv salt plaintext
           tag = Poly1305.mac otk md3
       in  (ciphertext, tag)
 
+-- | Decrypt an authenticated ciphertext, given a message authentication
+--   code and some additional authenticated data, via a 256-bit key and
+--   96-bit nonce.
+--
+--   Returns 'Nothing' if the MAC fails to validate.
+--
+--   Providing an invalid key or nonce will result in an 'ErrorCall'
+--   exception being thrown.
+--
+--   >>> decrypt aad key non (cip, mac)
+--   Just "and here's my plaintext"
+--   >>> decrypt aad key non (cip, "it's a valid mac")
+--   Nothing
 decrypt
-  :: BS.ByteString -- ^ arbitrary-length additional authenticated data
-  -> BS.ByteString -- ^ 256-bit key
-  -> BS.ByteString -- ^ 64-bit initial value (IV)
-  -> BS.ByteString -- ^ 32-bit salt
+  :: BS.ByteString                  -- ^ arbitrary-length AAD
+  -> BS.ByteString                  -- ^ 256-bit key
+  -> BS.ByteString                  -- ^ 96-bit nonce
   -> (BS.ByteString, BS.ByteString) -- ^ (arbitrary-length ciphertext, 128-bit MAC)
-  -> Either BS.ByteString BS.ByteString -- ^ possibly-authenticated plaintext
-decrypt aad key iv salt (ciphertext, mac) =
-  let (plaintext, _) = encrypt aad key iv salt ciphertext
-      (_, tag) = encrypt aad key iv salt plaintext  -- XX seems wrong?
-  in  if   mac == tag
-      then Right plaintext
-      else Left plaintext
+  -> Maybe BS.ByteString
+decrypt aad key nonce (ciphertext, mac)
+  | BS.length key /= 32   = error "ppad-aead (decrypt): invalid key"
+  | BS.length nonce /= 12 = error "ppad-aead (decrypt): invalid nonce"
+  | BS.length mac /= 16   = Nothing
+  | otherwise =
+      let otk = _poly1305_key_gen key nonce
+          md0 = aad <> pad16 aad
+          md1 = md0 <> ciphertext <> pad16 ciphertext
+          md2 = md1 <> unroll8 (fi (BS.length aad))
+          md3 = md2 <> unroll8 (fi (BS.length ciphertext))
+          tag = Poly1305.mac otk md3
+      in  if   mac == tag
+          then pure (ChaCha20.cipher key 1 nonce ciphertext)
+          else Nothing
 
