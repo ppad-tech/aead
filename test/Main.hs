@@ -1,18 +1,34 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
+import Control.Exception
 import qualified Crypto.AEAD.ChaCha20Poly1305 as AEAD
 import Data.ByteString as BS
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Base16 as B16
+import qualified Data.Text.IO as TIO
 import Data.Maybe (fromJust)
 import Test.Tasty
 import qualified Test.Tasty.HUnit as H
+import qualified Wycheproof as W
 
 main :: IO ()
-main = defaultMain $ testGroup "ppad-aead" [
+main = do
+  wycheproof_aead <- TIO.readFile "etc/chacha20_poly1305_test.json"
+  let wycheproofs = A.decodeStrictText wycheproof_aead :: Maybe W.Wycheproof
+  case wycheproofs of
+    Nothing -> error "couldn't parse wycheproof vectors"
+    Just w -> defaultMain $ testGroup "ppad-aead" [
+        rfc8439
+      , wycheproof_tests w
+      ]
+
+rfc8439 :: TestTree
+rfc8439 = testGroup "RFC8439 vectors" [
     poly1305_key_gen
   , crypt
   ]
@@ -81,5 +97,36 @@ crypt0 = H.testCase "decrypt (A.5)" $ do
       Just pan = AEAD.decrypt aad key non (cip, tag)
 
   H.assertEqual mempty e_pan pan
+
+wycheproof_tests :: W.Wycheproof -> TestTree
+wycheproof_tests W.Wycheproof {..} =
+  testGroup "wycheproof vectors (aead-chacha20-poly1305)" $
+    fmap execute_group wp_testGroups
+
+execute_group :: W.AEADTestGroup -> TestTree
+execute_group W.AEADTestGroup {..} =
+  testGroup mempty (fmap execute aeadtg_tests)
+
+execute :: W.AEADTest -> TestTree
+execute W.AEADTest {..} = H.testCase t_msg $ do
+    let key = aeadt_key
+        iv  = aeadt_iv
+        aad = aeadt_aad
+        msg = aeadt_msg
+        ct  = aeadt_ct
+        tag = aeadt_tag
+    if   aeadt_result == "invalid"
+    then do
+      out <- try (pure $! AEAD.decrypt aad key iv (ct, tag))
+               :: IO (Either ErrorCall (Maybe BS.ByteString))
+      case out of
+        Left _         -> H.assertBool "invalid (bogus key/nonce)" True
+        Right Nothing  -> H.assertBool "invalid (bogus MAC)" True
+        Right (Just o) -> H.assertBool "invalid" (msg /= o)
+    else do
+      let out = AEAD.decrypt aad key iv (ct, tag)
+      H.assertEqual mempty (Just msg) out
+  where
+    t_msg = "test " <> show aeadt_tcId
 
 
