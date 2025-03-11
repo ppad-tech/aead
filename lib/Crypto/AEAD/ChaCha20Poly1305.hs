@@ -63,7 +63,9 @@ _poly1305_key_gen key@(BI.PS _ _ l) nonce
 {-# INLINEABLE _poly1305_key_gen #-}
 
 pad16 :: BS.ByteString -> BS.ByteString
-pad16 (BI.PS _ _ l) = BS.replicate (16 - l `rem` 16) 0
+pad16 (BI.PS _ _ l)
+  | l == 16   = mempty
+  | otherwise = BS.replicate (16 - l `rem` 16) 0
 {-# INLINE pad16 #-}
 
 -- RFC8439 2.8
