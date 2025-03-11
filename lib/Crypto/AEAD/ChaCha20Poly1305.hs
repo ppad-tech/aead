@@ -94,14 +94,16 @@ encrypt aad key nonce plaintext
   | BS.length key  /= 32  = error "ppad-aead (encrypt): invalid key"
   | BS.length nonce /= 12 = error "ppad-aead (encrypt): invalid nonce"
   | otherwise =
-      let otk   = _poly1305_key_gen key nonce
-          ciphertext = ChaCha20.cipher key 1 nonce plaintext
-          md0 = aad <> pad16 aad
-          md1 = md0 <> ciphertext <> pad16 ciphertext
+      let otk = _poly1305_key_gen key nonce
+          cip = ChaCha20.cipher key 1 nonce plaintext
+          md0 | BS.length aad == 0 = mempty
+              | otherwise          = aad <> pad16 aad
+          md1 | BS.length cip == 0 = md0
+              | otherwise          = md0 <> cip <> pad16 cip
           md2 = md1 <> unroll8 (fi (BS.length aad))
-          md3 = md2 <> unroll8 (fi (BS.length ciphertext))
+          md3 = md2 <> unroll8 (fi (BS.length cip))
           tag = Poly1305.mac otk md3
-      in  (ciphertext, tag)
+      in  (cip, tag)
 
 -- | Decrypt an authenticated ciphertext, given a message authentication
 --   code and some additional authenticated data, via a 256-bit key and
@@ -122,18 +124,20 @@ decrypt
   -> BS.ByteString                  -- ^ 96-bit nonce
   -> (BS.ByteString, BS.ByteString) -- ^ (arbitrary-length ciphertext, 128-bit MAC)
   -> Maybe BS.ByteString
-decrypt aad key nonce (ciphertext, mac)
+decrypt aad key nonce (cip, mac)
   | BS.length key /= 32   = error "ppad-aead (decrypt): invalid key"
   | BS.length nonce /= 12 = error "ppad-aead (decrypt): invalid nonce"
   | BS.length mac /= 16   = Nothing
   | otherwise =
       let otk = _poly1305_key_gen key nonce
-          md0 = aad <> pad16 aad
-          md1 = md0 <> ciphertext <> pad16 ciphertext
+          md0 | BS.length aad == 0 = mempty
+              | otherwise          = aad <> pad16 aad
+          md1 | BS.length cip == 0 = md0
+              | otherwise          = md0 <> cip <> pad16 cip
           md2 = md1 <> unroll8 (fi (BS.length aad))
-          md3 = md2 <> unroll8 (fi (BS.length ciphertext))
+          md3 = md2 <> unroll8 (fi (BS.length cip))
           tag = Poly1305.mac otk md3
       in  if   mac == tag
-          then pure (ChaCha20.cipher key 1 nonce ciphertext)
+          then pure (ChaCha20.cipher key 1 nonce cip)
           else Nothing
 
