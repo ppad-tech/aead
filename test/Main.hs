@@ -5,7 +5,6 @@
 
 module Main where
 
-import Control.Exception
 import qualified Crypto.AEAD.ChaCha20Poly1305 as AEAD
 import Data.ByteString as BS
 import qualified Data.Aeson as A
@@ -43,14 +42,14 @@ poly1305_key_gen = H.testCase "poly1305_key_gen" $ do
       Just e = B16.decode
         "8ad5a08b905f81cc815040274ab29471a833b637e3fd0da508dbb8e2fdd1a646"
 
-      o = AEAD._poly1305_key_gen key non
+      Right o = AEAD._poly1305_key_gen key non
   H.assertEqual mempty e o
 
 crypt :: TestTree
 crypt = H.testCase "encrypt/decrypt" $ do
     let nonce = salt <> iv
 
-        (o_cip, o_tag) = AEAD.encrypt aad key nonce sunscreen
+        Right (o_cip, o_tag) = AEAD.encrypt aad key nonce sunscreen
 
         e_cip = fromJust . B16.decode $
           "d31a8d34648e60db7b86afbc53ef7ec2a4aded51296e08fea9e2b5a736ee62d63dbea45e8ca9671282fafb69da92728b1a71de0a9e060b2905d6a5b67ecd3b3692ddbd7f2d778b8c9803aee328091b58fab324e4fad675945585808b4831d7bc3ff4def08e4b7a9de576d26586cec64b6116"
@@ -59,10 +58,10 @@ crypt = H.testCase "encrypt/decrypt" $ do
           "1ae10b594f09e26a7e902ecbd0600691"
 
 
-        o_dec = AEAD.decrypt aad key nonce (o_cip, o_tag)
+        Right o_dec = AEAD.decrypt aad key nonce (o_cip, o_tag)
 
     H.assertEqual mempty (e_cip, e_tag) (o_cip, o_tag)
-    H.assertEqual mempty (Just sunscreen) o_dec
+    H.assertEqual mempty sunscreen o_dec
   where
     sunscreen :: BS.ByteString
     sunscreen = fromJust . B16.decode $
@@ -94,7 +93,7 @@ crypt0 = H.testCase "decrypt (A.5)" $ do
       tag = fromJust . B16.decode $
         "eead9d67890cbb22392336fea1851f38"
 
-      Just pan = AEAD.decrypt aad key non (cip, tag)
+      Right pan = AEAD.decrypt aad key non (cip, tag)
 
   H.assertEqual mempty e_pan pan
 
@@ -115,21 +114,18 @@ execute W.AEADTest {..} = H.testCase t_msg $ do
         msg = aeadt_msg
         ct  = aeadt_ct
         tag = aeadt_tag
-    if   aeadt_result == "invalid"
-    then do
-      out <- try (pure $! AEAD.decrypt aad key iv (ct, tag))
-               :: IO (Either ErrorCall (Maybe BS.ByteString))
-      case out of
-        Left _         -> H.assertBool "invalid (bogus key/nonce)" True
-        Right Nothing  -> H.assertBool "invalid (bogus MAC)" True
-        Right (Just o) -> H.assertBool "invalid" (msg /= o)
-    else do
-      let (out_cip, out_mac) = AEAD.encrypt aad key iv msg
-          out_pan = AEAD.decrypt aad key iv (ct, tag)
-      H.assertEqual mempty ct out_cip
-      H.assertEqual mempty tag out_mac
-      H.assertEqual mempty (Just msg) out_pan
+    case AEAD.decrypt aad key iv (ct, tag) of
+      Left _
+        | aeadt_result == "invalid" -> H.assertBool "invalid" True
+        | otherwise -> H.assertFailure mempty
+      Right out
+        | aeadt_result == "invalid" -> H.assertFailure mempty
+        | otherwise -> case AEAD.encrypt aad key iv msg of
+            Left _ -> H.assertFailure mempty
+            Right (out_cip, out_mac) -> do
+              H.assertEqual mempty ct out_cip
+              H.assertEqual mempty tag out_mac
+              H.assertEqual mempty msg out
   where
     t_msg = "test " <> show aeadt_tcId
-
 

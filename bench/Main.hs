@@ -1,13 +1,22 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Main where
 
+import Control.DeepSeq
 import Criterion.Main
 import qualified Crypto.AEAD.ChaCha20Poly1305 as AEAD
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base16 as B16
 import Data.Maybe (fromJust)
+import GHC.Generics
+
+deriving instance Generic AEAD.Error
+
+instance NFData AEAD.Error
 
 main :: IO ()
 main = defaultMain [

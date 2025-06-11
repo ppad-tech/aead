@@ -27,7 +27,7 @@ A sample GHCi session:
   > let aad = "and i approve it"
   >
   > -- encryption produces a 128-bit MAC
-  > let (cip, mac) = AEAD.encrypt aad key non msg
+  > let Right (cip, mac) = AEAD.encrypt aad key non msg
   > B16.encode cip
   "d6377eab18cad56e8c6176968460e6a548c524b9498c9b993e"
   > B16.encode mac
@@ -35,11 +35,11 @@ A sample GHCi session:
   >
   > -- supply both to decrypt
   > AEAD.decrypt aad key non (cip, tag)
-  Just "this is my secret message"
+  Right "this is my secret message"
   >
   > -- bogus MACs will cause decryption to fail
   > AEAD.decrypt aad key non (cip, "really i swear!!")
-  Nothing
+  Left InvalidMAC
 ```
 
 ## Documentation

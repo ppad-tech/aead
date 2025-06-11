@@ -67,6 +67,7 @@ benchmark aead-bench
       base
     , bytestring
     , criterion
+    , deepseq
     , ppad-base16
     , ppad-aead
 

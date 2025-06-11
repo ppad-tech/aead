@@ -18,6 +18,9 @@ module Crypto.AEAD.ChaCha20Poly1305 (
     encrypt
   , decrypt
 
+    -- * Error information
+  , Error(..)
+
     -- testing
   , _poly1305_key_gen
   ) where
@@ -56,10 +59,11 @@ unroll8 (unroll -> u@(BI.PS _ _ l))
 _poly1305_key_gen
   :: BS.ByteString -- ^ 256-bit initial keying material
   -> BS.ByteString -- ^ 96-bit nonce
-  -> BS.ByteString -- ^ 256-bit key (suitable for poly1305)
-_poly1305_key_gen key@(BI.PS _ _ l) nonce
-  | l /= 32   = error "ppad-aead (poly1305_key_gen): invalid key"
-  | otherwise = BS.take 32 (ChaCha20.block key 0 nonce)
+  -> Either Error BS.ByteString -- ^ 256-bit key (suitable for poly1305)
+_poly1305_key_gen key nonce = case ChaCha20.block key 0 nonce of
+  Left ChaCha20.InvalidKey -> Left InvalidKey
+  Left ChaCha20.InvalidNonce -> Left InvalidNonce
+  Right k -> pure (BS.take 32 k)
 {-# INLINEABLE _poly1305_key_gen #-}
 
 pad16 :: BS.ByteString -> BS.ByteString
@@ -67,6 +71,12 @@ pad16 (BI.PS _ _ l)
   | l `rem` 16 == 0 = mempty
   | otherwise = BS.replicate (16 - l `rem` 16) 0
 {-# INLINE pad16 #-}
+
+data Error =
+    InvalidKey
+  | InvalidNonce
+  | InvalidMAC
+  deriving (Eq, Show)
 
 -- RFC8439 2.8
 
@@ -76,14 +86,11 @@ pad16 (BI.PS _ _ l)
 --
 --   Produces a ciphertext and 128-bit message authentication code pair.
 --
---   Providing an invalid key or nonce will result in an 'ErrorCall'
---   exception being thrown.
---
 --   >>> let key = "don't tell anyone my secret key!"
 --   >>> let non = "or my nonce!"
 --   >>> let pan = "and here's my plaintext"
 --   >>> let aad = "i approve this message"
---   >>> let (cip, mac) = encrypt aad key nonce pan
+--   >>> let Right (cip, mac) = encrypt aad key nonce pan
 --   >>> (cip, mac)
 --   <(ciphertext, 128-bit MAC)>
 encrypt
@@ -91,51 +98,55 @@ encrypt
   -> BS.ByteString -- ^ 256-bit key
   -> BS.ByteString -- ^ 96-bit nonce
   -> BS.ByteString -- ^ arbitrary-length plaintext
-  -> (BS.ByteString, BS.ByteString) -- ^ (ciphertext, 128-bit MAC)
+  -> Either Error (BS.ByteString, BS.ByteString) -- ^ (ciphertext, 128-bit MAC)
 encrypt aad key nonce plaintext
-  | BS.length key  /= 32  = error "ppad-aead (encrypt): invalid key"
-  | BS.length nonce /= 12 = error "ppad-aead (encrypt): invalid nonce"
-  | otherwise =
-      let otk = _poly1305_key_gen key nonce
-          cip = ChaCha20.cipher key 1 nonce plaintext
-          md0 = aad <> pad16 aad
-          md1 = md0 <> cip <> pad16 cip
-          md2 = md1 <> unroll8 (fi (BS.length aad))
-          md3 = md2 <> unroll8 (fi (BS.length cip))
-          tag = Poly1305.mac otk md3
-      in  (cip, tag)
+  | BS.length key  /= 32  = Left InvalidKey
+  | BS.length nonce /= 12 = Left InvalidNonce
+  | otherwise = do
+      otk <- _poly1305_key_gen key nonce
+      case ChaCha20.cipher key 1 nonce plaintext of
+        Left ChaCha20.InvalidKey -> Left InvalidKey     -- impossible, but..
+        Left ChaCha20.InvalidNonce -> Left InvalidNonce -- ditto
+        Right cip -> do
+          let md0 = aad <> pad16 aad
+              md1 = md0 <> cip <> pad16 cip
+              md2 = md1 <> unroll8 (fi (BS.length aad))
+              md3 = md2 <> unroll8 (fi (BS.length cip))
+          case Poly1305.mac otk md3 of
+            Nothing -> Left InvalidKey
+            Just tag -> pure (cip, tag)
 
 -- | Decrypt an authenticated ciphertext, given a message authentication
 --   code and some additional authenticated data, via a 256-bit key and
 --   96-bit nonce.
 --
---   Returns 'Nothing' if the MAC fails to validate.
---
---   Providing an invalid key or nonce will result in an 'ErrorCall'
---   exception being thrown.
---
 --   >>> decrypt aad key non (cip, mac)
---   Just "and here's my plaintext"
+--   Right "and here's my plaintext"
 --   >>> decrypt aad key non (cip, "it's a valid mac")
---   Nothing
+--   Left InvalidMAC
 decrypt
   :: BS.ByteString                  -- ^ arbitrary-length AAD
   -> BS.ByteString                  -- ^ 256-bit key
   -> BS.ByteString                  -- ^ 96-bit nonce
   -> (BS.ByteString, BS.ByteString) -- ^ (arbitrary-length ciphertext, 128-bit MAC)
-  -> Maybe BS.ByteString
+  -> Either Error BS.ByteString
 decrypt aad key nonce (cip, mac)
-  | BS.length key /= 32   = error "ppad-aead (decrypt): invalid key"
-  | BS.length nonce /= 12 = error "ppad-aead (decrypt): invalid nonce"
-  | BS.length mac /= 16   = Nothing
-  | otherwise =
-      let otk = _poly1305_key_gen key nonce
-          md0 = aad <> pad16 aad
+  | BS.length key /= 32   = Left InvalidKey
+  | BS.length nonce /= 12 = Left InvalidNonce
+  | BS.length mac /= 16   = Left InvalidMAC
+  | otherwise = do
+      otk <- _poly1305_key_gen key nonce
+      let md0 = aad <> pad16 aad
           md1 = md0 <> cip <> pad16 cip
           md2 = md1 <> unroll8 (fi (BS.length aad))
           md3 = md2 <> unroll8 (fi (BS.length cip))
-          tag = Poly1305.mac otk md3
-      in  if   mac == tag
-          then pure (ChaCha20.cipher key 1 nonce cip)
-          else Nothing
+      case Poly1305.mac otk md3 of
+        Nothing -> Left InvalidKey
+        Just tag
+          | mac == tag -> case ChaCha20.cipher key 1 nonce cip of
+              Left ChaCha20.InvalidKey -> Left InvalidKey
+              Left ChaCha20.InvalidNonce -> Left InvalidNonce
+              Right v -> pure v
+          | otherwise ->
+              Left InvalidMAC
 
