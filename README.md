@@ -53,23 +53,21 @@ The aim is best-in-class performance for pure, highly-auditable Haskell
 code.
 
 Current benchmark figures on a simple input from the RFC8439 appendices
-on my mid-2020 MacBook Air look like (use `cabal bench` to run the
+on an M4 Silicon MacBook Air look like (use `cabal bench` to run the
 benchmark suite):
 
 ```
   benchmarking ppad-aead/encrypt
-  time                 23.27 μs   (22.45 μs .. 24.06 μs)
-                       0.993 R²   (0.989 R² .. 0.996 R²)
-  mean                 22.67 μs   (22.17 μs .. 23.21 μs)
-  std dev              1.795 μs   (1.486 μs .. 2.180 μs)
-  variance introduced by outliers: 78% (severely inflated)
+  time                 10.03 μs   (10.02 μs .. 10.03 μs)
+                       1.000 R²   (1.000 R² .. 1.000 R²)
+  mean                 10.04 μs   (10.04 μs .. 10.05 μs)
+  std dev              9.024 ns   (7.330 ns .. 11.99 ns)
 
   benchmarking ppad-aead/decrypt
-  time                 25.92 μs   (25.15 μs .. 26.64 μs)
-                       0.993 R²   (0.990 R² .. 0.996 R²)
-  mean                 25.88 μs   (25.23 μs .. 26.56 μs)
-  std dev              2.183 μs   (1.860 μs .. 2.642 μs)
-  variance introduced by outliers: 80% (severely inflated)
+  time                 10.06 μs   (10.05 μs .. 10.07 μs)
+                       1.000 R²   (1.000 R² .. 1.000 R²)
+  mean                 10.07 μs   (10.06 μs .. 10.08 μs)
+  std dev              26.50 ns   (21.66 ns .. 32.02 ns)
 ```
 
 ## Security

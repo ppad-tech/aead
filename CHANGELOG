@@ -1,5 +1,10 @@
 # Changelog
 
+- 0.2.0 (2025-06-21)
+  * The 'encrypt' and 'decrypt' functions are now total, returning 'Left
+    InvalidKey', 'Left InvalidNonce', or 'Left InvalidMAC' values when
+    passed the corresponding bad inputs.
+
 - 0.1.0 (2025-03-09)
   * Initial release, supporting the ChaCha20-Poly1305 configuration.
 
