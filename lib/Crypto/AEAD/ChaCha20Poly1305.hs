@@ -72,10 +72,11 @@ pad16 (BI.PS _ _ l)
   | otherwise = BS.replicate (16 - l `rem` 16) 0
 {-# INLINE pad16 #-}
 
+-- | Error values.
 data Error =
-    InvalidKey
-  | InvalidNonce
-  | InvalidMAC
+    InvalidKey    -- ^ the provided key was not 256 bits long
+  | InvalidNonce  -- ^ the provided nonce was not 96 bits long
+  | InvalidMAC    -- ^ the provided MAC does not authenticate the ciphertext
   deriving (Eq, Show)
 
 -- RFC8439 2.8
