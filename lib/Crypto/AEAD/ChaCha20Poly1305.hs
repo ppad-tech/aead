@@ -28,6 +28,7 @@ module Crypto.AEAD.ChaCha20Poly1305 (
 import qualified Crypto.Cipher.ChaCha20 as ChaCha20
 import qualified Crypto.MAC.Poly1305 as Poly1305
 import Data.Bits ((.>>.))
+import qualified Data.Bits as B
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Internal as BI
 import Data.Word (Word64)
@@ -35,6 +36,13 @@ import Data.Word (Word64)
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 {-# INLINE fi #-}
+
+-- constant-time equality comparison on bytestrings
+ct_eq :: BS.ByteString -> BS.ByteString -> Bool
+ct_eq a@(BI.PS _ _ la) b@(BI.PS _ _ lb)
+  | la /= lb = False
+  | otherwise = BS.foldl' (B..|.) 0 (BS.packZipWith B.xor a b) == 0
+{-# INLINE ct_eq #-}
 
 -- little-endian bytestring encoding
 unroll :: Word64 -> BS.ByteString
@@ -144,7 +152,7 @@ decrypt aad key nonce (cip, mac)
       case Poly1305.mac otk md3 of
         Nothing -> Left InvalidKey
         Just tag
-          | mac == tag -> case ChaCha20.cipher key 1 nonce cip of
+          | ct_eq mac tag -> case ChaCha20.cipher key 1 nonce cip of
               Left ChaCha20.InvalidKey -> Left InvalidKey
               Left ChaCha20.InvalidNonce -> Left InvalidNonce
               Right v -> pure v

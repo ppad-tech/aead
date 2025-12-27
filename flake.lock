@@ -85,11 +85,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1750501666,
-        "narHash": "sha256-vIZrbi7ozlsZ0yMUxz7BAX7KsgTvsWS+MfCJEfGxu+o=",
+        "lastModified": 1766837471,
+        "narHash": "sha256-v2LKjKLK6gWWjKA1dzgFVihTrfODorlNfNBhWlia3g0=",
         "ref": "master",
-        "rev": "9adca9651d3098b8fa2ce48f663c5ac6105dc90e",
-        "revCount": 20,
+        "rev": "6752c4336c1b581ae7875b1c9a0eaed115e420a3",
+        "revCount": 23,
         "type": "git",
         "url": "git://git.ppad.tech/chacha.git"
       },
@@ -97,6 +97,40 @@
         "ref": "master",
         "type": "git",
         "url": "git://git.ppad.tech/chacha.git"
+      }
+    },
+    "ppad-fixed": {
+      "inputs": {
+        "flake-utils": [
+          "ppad-poly1305",
+          "ppad-fixed",
+          "ppad-nixpkgs",
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "ppad-poly1305",
+          "ppad-fixed",
+          "ppad-nixpkgs",
+          "nixpkgs"
+        ],
+        "ppad-nixpkgs": [
+          "ppad-poly1305",
+          "ppad-nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1766767330,
+        "narHash": "sha256-YtJJJT/TwKxIFUHk5DCqLV64mtC1O5z6ncSbxcIct7E=",
+        "ref": "master",
+        "rev": "e9498b179a8c88328af5f0c1518870bd1b5dd42e",
+        "revCount": 268,
+        "type": "git",
+        "url": "git://git.ppad.tech/fixed.git"
+      },
+      "original": {
+        "ref": "master",
+        "type": "git",
+        "url": "git://git.ppad.tech/fixed.git"
       }
     },
     "ppad-nixpkgs": {
@@ -134,16 +168,17 @@
         "ppad-base16": [
           "ppad-base16"
         ],
+        "ppad-fixed": "ppad-fixed",
         "ppad-nixpkgs": [
           "ppad-nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1750502056,
-        "narHash": "sha256-0KJgniap/pyKsEvTh2SgA/D4zzX194P/oAzJv3fSVdM=",
+        "lastModified": 1766836438,
+        "narHash": "sha256-0C5beSCaiTprBjpZkbJFAonRuvMaj8AbVB1WNMYDEro=",
         "ref": "master",
-        "rev": "9a67f66c8d0a9292aa5b86a620be6c4d8c7d66d2",
-        "revCount": 17,
+        "rev": "7fa9ffd429c84c64563ce1c056e0aa3afe26943d",
+        "revCount": 21,
         "type": "git",
         "url": "git://git.ppad.tech/poly1305.git"
       },

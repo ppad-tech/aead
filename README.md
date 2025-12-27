@@ -58,16 +58,16 @@ benchmark suite):
 
 ```
   benchmarking ppad-aead/encrypt
-  time                 10.03 μs   (10.02 μs .. 10.03 μs)
+  time                 2.589 μs   (2.587 μs .. 2.592 μs)
                        1.000 R²   (1.000 R² .. 1.000 R²)
-  mean                 10.04 μs   (10.04 μs .. 10.05 μs)
-  std dev              9.024 ns   (7.330 ns .. 11.99 ns)
+  mean                 2.595 μs   (2.594 μs .. 2.597 μs)
+  std dev              5.384 ns   (4.491 ns .. 6.511 ns)
 
   benchmarking ppad-aead/decrypt
-  time                 10.06 μs   (10.05 μs .. 10.07 μs)
+  time                 2.625 μs   (2.618 μs .. 2.636 μs)
                        1.000 R²   (1.000 R² .. 1.000 R²)
-  mean                 10.07 μs   (10.06 μs .. 10.08 μs)
-  std dev              26.50 ns   (21.66 ns .. 32.02 ns)
+  mean                 2.614 μs   (2.610 μs .. 2.621 μs)
+  std dev              15.99 ns   (11.98 ns .. 27.52 ns)
 ```
 
 ## Security
@@ -75,10 +75,6 @@ benchmark suite):
 This library aims at the maximum security achievable in a
 garbage-collected language under an optimizing compiler such as GHC, in
 which strict constant-timeness can be [challenging to achieve][const].
-
-Note that *at present* we use GHC's native variable-length Integer
-type internally (relevant to Poly1305 MAC handling), and make no "hard"
-guarantees of constant-time execution.
 
 The AEAD-ChaCha20-Poly1305 implementation within passes all
 test vectors from RFC8439, as well as the available [Project
