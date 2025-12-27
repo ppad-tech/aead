@@ -1,5 +1,10 @@
 # Changelog
 
+- 0.3.0 (2025-12-27)
+  * Updates the poly1305 dependency to a version that uses ppad-fixed for
+    fixed-width words and constant-time primitives internally. Also swaps
+    a naïve ByteString equality check out for a constant-time version.
+
 - 0.2.0 (2025-06-21)
   * The 'encrypt' and 'decrypt' functions are now total, returning 'Left
     InvalidKey', 'Left InvalidNonce', or 'Left InvalidMAC' values when
