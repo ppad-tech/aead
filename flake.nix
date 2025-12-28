@@ -41,7 +41,19 @@
 
         pkgs = import nixpkgs { inherit system; };
         hlib = pkgs.haskell.lib;
-        llvm  = pkgs.llvmPackages_15.llvm;
+        llvm  = pkgs.llvmPackages_19.llvm;
+
+        base16 = ppad-base16.packages.${system}.default;
+        base16-llvm =
+          hlib.addBuildTools
+            (hlib.enableCabalFlag base16 "llvm")
+            [ llvm ];
+
+        chacha = ppad-chacha.packages.${system}.default;
+        chacha-llvm =
+          hlib.addBuildTools
+            (hlib.enableCabalFlag chacha "llvm")
+            [ llvm ];
 
         poly1305 = ppad-poly1305.packages.${system}.default;
         poly1305-llvm =
@@ -49,9 +61,9 @@
             (hlib.enableCabalFlag poly1305 "llvm")
             [ llvm ];
 
-        hpkgs = pkgs.haskell.packages.ghc981.extend (new: old: {
-          ppad-base16 = ppad-base16.packages.${system}.default;
-          ppad-chacha = ppad-chacha.packages.${system}.default;
+        hpkgs = pkgs.haskell.packages.ghc910.extend (new: old: {
+          ppad-base16 = base16-llvm;
+          ppad-chacha = chacha-llvm;
           ppad-poly1305 = poly1305-llvm;
           ${lib} = new.callCabal2nixWithOptions lib ./. "--enable-profiling" {
             ppad-poly1305 = new.ppad-poly1305;

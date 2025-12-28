@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               ppad-aead
-version:            0.3.0
+version:            0.3.1
 synopsis:           A pure AEAD-ChaCha20-Poly1305 construction
 license:            MIT
 license-file:       LICENSE
@@ -8,7 +8,7 @@ author:             Jared Tobin
 maintainer:         jared@ppad.tech
 category:           Cryptography
 build-type:         Simple
-tested-with:        GHC == 9.8.1
+tested-with:        GHC == 9.10.3
 extra-doc-files:    CHANGELOG
 description:
   A pure authenticated encryption with associated data
@@ -29,8 +29,8 @@ library
   build-depends:
       base >= 4.9 && < 5
     , bytestring >= 0.9 && < 0.13
-    , ppad-chacha >= 0.2 && < 0.3
-    , ppad-poly1305 >= 0.4 && < 0.5
+    , ppad-chacha >= 0.2.1 && < 0.3
+    , ppad-poly1305 >= 0.4.1 && < 0.5
 
 test-suite aead-tests
   type:                exitcode-stdio-1.0

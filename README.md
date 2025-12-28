@@ -58,16 +58,16 @@ benchmark suite):
 
 ```
   benchmarking ppad-aead/encrypt
-  time                 2.589 μs   (2.587 μs .. 2.592 μs)
+  time                 1.682 μs   (1.676 μs .. 1.691 μs)
                        1.000 R²   (1.000 R² .. 1.000 R²)
-  mean                 2.595 μs   (2.594 μs .. 2.597 μs)
-  std dev              5.384 ns   (4.491 ns .. 6.511 ns)
+  mean                 1.684 μs   (1.681 μs .. 1.690 μs)
+  std dev              14.25 ns   (7.844 ns .. 23.62 ns)
 
   benchmarking ppad-aead/decrypt
-  time                 2.625 μs   (2.618 μs .. 2.636 μs)
+  time                 1.692 μs   (1.690 μs .. 1.695 μs)
                        1.000 R²   (1.000 R² .. 1.000 R²)
-  mean                 2.614 μs   (2.610 μs .. 2.621 μs)
-  std dev              15.99 ns   (11.98 ns .. 27.52 ns)
+  mean                 1.695 μs   (1.693 μs .. 1.696 μs)
+  std dev              4.261 ns   (3.463 ns .. 5.420 ns)
 ```
 
 ## Security
