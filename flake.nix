@@ -41,7 +41,7 @@
 
         pkgs = import nixpkgs { inherit system; };
         hlib = pkgs.haskell.lib;
-        llvm  = pkgs.llvmPackages_19.llvm;
+        llvm = pkgs.llvmPackages_19.llvm;
 
         base16 = ppad-base16.packages.${system}.default;
         base16-llvm =

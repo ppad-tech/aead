@@ -15,6 +15,11 @@ description:
   (AEAD) implementation supporting ChaCha20-Poly1305, per
   [RFC8439](https://datatracker.ietf.org/doc/html/rfc8439).
 
+flag llvm
+  description: Use GHC's LLVM backend.
+  default:     False
+  manual:      True
+
 source-repository head
   type:     git
   location: git.ppad.tech/aead.git
@@ -24,6 +29,8 @@ library
   hs-source-dirs:   lib
   ghc-options:
       -Wall
+  if flag(llvm)
+    ghc-options: -fllvm -O2
   exposed-modules:
       Crypto.AEAD.ChaCha20Poly1305
   build-depends:
