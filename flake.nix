@@ -40,26 +40,27 @@
         lib = "ppad-aead";
 
         pkgs = import nixpkgs { inherit system; };
-        hlib = pkgs.haskell.lib;
-        llvm = pkgs.llvmPackages_19.llvm;
+        hlib  = pkgs.haskell.lib;
+        llvm  = pkgs.llvmPackages_19.llvm;
+        clang = pkgs.llvmPackages_19.clang;
 
         base16 = ppad-base16.packages.${system}.default;
         base16-llvm =
           hlib.addBuildTools
             (hlib.enableCabalFlag base16 "llvm")
-            [ llvm ];
+            [ llvm clang ];
 
         chacha = ppad-chacha.packages.${system}.default;
         chacha-llvm =
           hlib.addBuildTools
             (hlib.enableCabalFlag chacha "llvm")
-            [ llvm ];
+            [ llvm clang ];
 
         poly1305 = ppad-poly1305.packages.${system}.default;
         poly1305-llvm =
           hlib.addBuildTools
             (hlib.enableCabalFlag poly1305 "llvm")
-            [ llvm ];
+            [ llvm clang ];
 
         hpkgs = pkgs.haskell.packages.ghc910.extend (new: old: {
           ppad-base16 = base16-llvm;
