@@ -1,5 +1,9 @@
 # Changelog
 
+- 0.3.2 (2026-05-16)
+  * Bumps the poly1305 dependency to a version that returns its MAC in a
+    custom type having a constant-time Eq instance.
+
 - 0.3.1 (2025-12-28)
   * Tests with GHC 9.10.3.
 
