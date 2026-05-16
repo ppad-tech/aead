@@ -123,7 +123,7 @@ encrypt aad key nonce plaintext
               md3 = md2 <> unroll8 (fi (BS.length cip))
           case Poly1305.mac otk md3 of
             Nothing -> Left InvalidKey
-            Just tag -> pure (cip, tag)
+            Just (Poly1305.MAC tag) -> pure (cip, tag)
 
 -- | Decrypt an authenticated ciphertext, given a message authentication
 --   code and some additional authenticated data, via a 256-bit key and
@@ -151,7 +151,7 @@ decrypt aad key nonce (cip, mac)
           md3 = md2 <> unroll8 (fi (BS.length cip))
       case Poly1305.mac otk md3 of
         Nothing -> Left InvalidKey
-        Just tag
+        Just (Poly1305.MAC tag)
           | ct_eq mac tag -> case ChaCha20.cipher key 1 nonce cip of
               Left ChaCha20.InvalidKey -> Left InvalidKey
               Left ChaCha20.InvalidNonce -> Left InvalidNonce
