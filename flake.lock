@@ -174,11 +174,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1766951654,
-        "narHash": "sha256-Q+xcIJCOEZ6UgkY62+MOkxUsxL/4ZeQHVjZqVQRxvVA=",
+        "lastModified": 1778948958,
+        "narHash": "sha256-vuroggP/yEuE+zqdACQMAeSR8XVKrCs/+rLXaGofG/w=",
         "ref": "master",
-        "rev": "1c50a555ab3e4077236aa4d480e4fb3e251e60e0",
-        "revCount": 24,
+        "rev": "a0a1e67bd9f37b5d2ba97f0d092766132f531d1b",
+        "revCount": 36,
         "type": "git",
         "url": "git://git.ppad.tech/poly1305.git"
       },
