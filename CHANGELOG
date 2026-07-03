@@ -1,5 +1,11 @@
 # Changelog
 
+- Unreleased
+  * The internal constant-time tag comparison now folds over the
+    two buffers directly, rather than materialising an intermediate
+    ByteString holding their XOR on the heap. Semantics are
+    unchanged.
+
 - 0.3.2 (2026-05-16)
   * Bumps the poly1305 dependency to a version that returns its MAC in a
     custom type having a constant-time Eq instance.

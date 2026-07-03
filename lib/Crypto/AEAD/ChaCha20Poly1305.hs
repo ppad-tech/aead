@@ -31,17 +31,30 @@ import Data.Bits ((.>>.))
 import qualified Data.Bits as B
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Internal as BI
-import Data.Word (Word64)
+import qualified Data.ByteString.Unsafe as BU
+import Data.Word (Word8, Word64)
 
 fi :: (Integral a, Num b) => a -> b
 fi = fromIntegral
 {-# INLINE fi #-}
 
--- constant-time equality comparison on bytestrings
+-- constant-time equality comparison on bytestrings. fused fold: OR
+-- the bytewise XORs into an accumulator directly, rather than via
+-- packZipWith, so no intermediate ByteString holding the
+-- (secret-derived) difference bytes is ever materialised on the
+-- heap.
 ct_eq :: BS.ByteString -> BS.ByteString -> Bool
 ct_eq a@(BI.PS _ _ la) b@(BI.PS _ _ lb)
-  | la /= lb = False
-  | otherwise = BS.foldl' (B..|.) 0 (BS.packZipWith B.xor a b) == 0
+    | la /= lb  = False
+    | otherwise = go 0 0
+  where
+    go :: Word8 -> Int -> Bool
+    go !acc !i
+      | i == la   = acc == 0
+      | otherwise =
+          let !x = BU.unsafeIndex a i
+              !y = BU.unsafeIndex b i
+          in  go (acc B..|. B.xor x y) (i + 1)
 {-# INLINE ct_eq #-}
 
 -- little-endian bytestring encoding
