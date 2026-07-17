@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               ppad-aead
-version:            0.3.3
+version:            0.3.4
 synopsis:           A pure AEAD-ChaCha20-Poly1305 construction
 license:            MIT
 license-file:       LICENSE
@@ -39,7 +39,7 @@ library
       base >= 4.9 && < 5
     , bytestring >= 0.9 && < 0.13
     , ppad-chacha >= 0.2.2 && < 0.3
-    , ppad-poly1305 >= 0.4.4 && < 0.5
+    , ppad-poly1305 >= 0.4.5 && < 0.5
 
 test-suite aead-tests
   type:                exitcode-stdio-1.0

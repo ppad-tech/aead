@@ -1,5 +1,10 @@
 # Changelog
 
+- 0.3.4 (2026-07-17)
+  * Adds an optimization-opaque barrier to MAC equality comparison
+    to prevent LLVM from introducing variable-time instructions when
+    compiling with the LLVM backend.
+
 - 0.3.3 (2026-07-17)
   * Uses a different algorithm for constant-time MAC comparison.
     This version seems to produce less microarchitectural variance on
