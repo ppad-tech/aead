@@ -1,10 +1,9 @@
 # Changelog
 
-- Unreleased
-  * The internal constant-time tag comparison now folds over the
-    two buffers directly, rather than materialising an intermediate
-    ByteString holding their XOR on the heap. Semantics are
-    unchanged.
+- 0.3.3 (2026-07-17)
+  * Uses a different algorithm for constant-time MAC comparison.
+    This version seems to produce less microarchitectural variance on
+    aarch64/darwin.
 
 - 0.3.2 (2026-05-16)
   * Bumps the poly1305 dependency to a version that returns its MAC in a
