@@ -1,3 +1,5 @@
+{-# OPTIONS_HADDOCK hide #-}
+
 -- |
 -- Module: Data.Barrier
 -- Copyright: (c) 2025 Jared Tobin
