@@ -25,6 +25,7 @@ module Crypto.AEAD.ChaCha20Poly1305 (
   , _poly1305_key_gen
   ) where
 
+import Data.Barrier (barrier)
 import qualified Crypto.Cipher.ChaCha20 as ChaCha20
 import qualified Crypto.MAC.Poly1305 as Poly1305
 import Data.Bits ((.>>.))
@@ -42,7 +43,9 @@ fi = fromIntegral
 -- the bytewise XORs into an accumulator directly, rather than via
 -- packZipWith, so no intermediate ByteString holding the
 -- (secret-derived) difference bytes is ever materialised on the
--- heap.
+-- heap. The accumulator is routed through 'barrier' before the
+-- zero-test so the LLVM backend cannot recover the array-equality
+-- idiom and short-circuit on the first mismatch (see "Data.Barrier").
 ct_eq :: BS.ByteString -> BS.ByteString -> Bool
 ct_eq a@(BI.PS _ _ la) b@(BI.PS _ _ lb)
     | la /= lb  = False
@@ -50,7 +53,7 @@ ct_eq a@(BI.PS _ _ la) b@(BI.PS _ _ lb)
   where
     go :: Word8 -> Int -> Bool
     go !acc !i
-      | i == la   = acc == 0
+      | i == la   = barrier acc == 0
       | otherwise =
           let !x = BU.unsafeIndex a i
               !y = BU.unsafeIndex b i
