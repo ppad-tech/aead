@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.3.5 (2026-08-01)
+  * Merely bumps the ppad-poly1305 dependency.
+
 - 0.3.4 (2026-07-17)
   * Adds an optimization-opaque barrier to MAC equality comparison
     to prevent LLVM from introducing variable-time instructions when
