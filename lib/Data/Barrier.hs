@@ -29,8 +29,6 @@ import Data.Word (Word8)
 --       external call it cannot see through. Inline it into the caller
 --       and the barrier is gone.
 --
---   Guarded by the substratum + censor constant-time checks; weakening
---   either property re-introduces the timing leak.
 barrier :: Word8 -> Word8
 barrier x = x
 {-# NOINLINE barrier #-}
