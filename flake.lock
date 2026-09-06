@@ -85,11 +85,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783709359,
-        "narHash": "sha256-Xl31mWwQfJcfztw5v1NeaUlYn2vAaSVcambpCeemT7I=",
+        "lastModified": 1788702071,
+        "narHash": "sha256-B0a9eLZBsHTrsr/SNyPhpiq1NzjvTFsb1Kdr1mRmxXM=",
         "ref": "master",
-        "rev": "2beeb81459bc33ad074321e9ced4ba3880edf747",
-        "revCount": 36,
+        "rev": "46cb61870a875f2c4e1633bc4d2cba1ddffa461d",
+        "revCount": 41,
         "type": "git",
         "url": "git://git.ppad.tech/chacha.git"
       },

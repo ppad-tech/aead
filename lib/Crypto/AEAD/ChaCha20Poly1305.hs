@@ -98,9 +98,10 @@ pad16 (BI.PS _ _ l)
 
 -- | Error values.
 data Error =
-    InvalidKey    -- ^ the provided key was not 256 bits long
-  | InvalidNonce  -- ^ the provided nonce was not 96 bits long
-  | InvalidMAC    -- ^ the provided MAC does not authenticate the ciphertext
+    InvalidKey      -- ^ the provided key was not 256 bits long
+  | InvalidNonce    -- ^ the provided nonce was not 96 bits long
+  | InvalidMAC      -- ^ the provided MAC does not authenticate the ciphertext
+  | CounterOverflow -- ^ cipher exhausted
   deriving (Eq, Show)
 
 -- RFC8439 2.8
@@ -122,7 +123,7 @@ encrypt
   :: BS.ByteString -- ^ arbitrary-length additional authenticated data
   -> BS.ByteString -- ^ 256-bit key
   -> BS.ByteString -- ^ 96-bit nonce
-  -> BS.ByteString -- ^ arbitrary-length plaintext
+  -> BS.ByteString -- ^ arbitrary-length (technically, ~256 GiB) plaintext
   -> Either Error (BS.ByteString, BS.ByteString) -- ^ (ciphertext, 128-bit MAC)
 encrypt aad key nonce plaintext
   | BS.length key  /= 32  = Left InvalidKey
@@ -130,8 +131,9 @@ encrypt aad key nonce plaintext
   | otherwise = do
       otk <- _poly1305_key_gen key nonce
       case ChaCha20.cipher key 1 nonce plaintext of
-        Left ChaCha20.InvalidKey -> Left InvalidKey     -- impossible, but..
-        Left ChaCha20.InvalidNonce -> Left InvalidNonce -- ditto
+        Left ChaCha20.InvalidKey      -> Left InvalidKey -- impossible, but..
+        Left ChaCha20.InvalidNonce    -> Left InvalidNonce -- ditto
+        Left ChaCha20.CounterOverflow -> Left CounterOverflow
         Right cip -> do
           let md0 = aad <> pad16 aad
               md1 = md0 <> cip <> pad16 cip
@@ -171,6 +173,7 @@ decrypt aad key nonce (cip, mac)
           | ct_eq mac tag -> case ChaCha20.cipher key 1 nonce cip of
               Left ChaCha20.InvalidKey -> Left InvalidKey
               Left ChaCha20.InvalidNonce -> Left InvalidNonce
+              Left ChaCha20.CounterOverflow -> Left CounterOverflow
               Right v -> pure v
           | otherwise ->
               Left InvalidMAC
