@@ -1,5 +1,8 @@
 # Changelog
 
+- 0.3.6 (2026-09-06)
+  * Merely bumps the ppad-chacha dependency.
+
 - 0.3.5 (2026-08-01)
   * Merely bumps the ppad-poly1305 dependency.
 
