@@ -87,6 +87,7 @@ _poly1305_key_gen
 _poly1305_key_gen key nonce = case ChaCha20.block key 0 nonce of
   Left ChaCha20.InvalidKey -> Left InvalidKey
   Left ChaCha20.InvalidNonce -> Left InvalidNonce
+  Left ChaCha20.CounterOverflow -> Left CounterOverflow
   Right k -> pure (BS.take 32 k)
 {-# INLINEABLE _poly1305_key_gen #-}
 
