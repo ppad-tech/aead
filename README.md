@@ -49,12 +49,12 @@ Haddocks (API documentation, etc.) are hosted at
 
 ## Performance
 
-The aim is best-in-class performance for pure, highly-auditable Haskell
-code.
-
-Current benchmark figures on a simple input from the RFC8439 appendices
-on an M4 Silicon MacBook Air look like (use `cabal bench` to run the
-benchmark suite):
+The aim is best-in-class performance. Through ppad-chacha and
+ppad-poly1305, we avail of hardware acceleration via ARM NEON
+intrinsics on aarch64, and x86 SSE2 and AVX2 intrinsics on x86_64, the
+latter whenever the CPU supports it. Current benchmark figures on a
+simple input from the RFC8439 appendices on an M4 Silicon MacBook Air
+look like (use `cabal bench` to run the benchmark suite):
 
 ```
   benchmarking ppad-aead/encrypt
