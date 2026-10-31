@@ -1,7 +1,7 @@
 cabal-version:      3.0
 name:               ppad-aead
 version:            0.3.8
-synopsis:           A pure AEAD-ChaCha20-Poly1305 construction
+synopsis:           A fast AEAD-ChaCha20-Poly1305 construction
 license:            MIT
 license-file:       LICENSE
 author:             Jared Tobin
@@ -11,7 +11,7 @@ build-type:         Simple
 tested-with:        GHC == 9.10.3
 extra-doc-files:    CHANGELOG
 description:
-  A pure authenticated encryption with associated data
+  A fast authenticated encryption with associated data
   (AEAD) implementation supporting ChaCha20-Poly1305, per
   [RFC8439](https://datatracker.ietf.org/doc/html/rfc8439).
 

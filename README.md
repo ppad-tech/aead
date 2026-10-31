@@ -4,7 +4,7 @@
 ![](https://img.shields.io/badge/license-MIT-brightgreen)
 [![](https://img.shields.io/badge/haddock-aead-lightblue)](https://docs.ppad.tech/aead)
 
-A pure Haskell implementation of authenticated encryption with
+A fast Haskell implementation of authenticated encryption with
 associated data (AEAD) using the ChaCha20-Poly1305 configuration, as
 specified by [RFC8439][8439].
 

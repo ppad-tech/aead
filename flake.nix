@@ -1,5 +1,5 @@
 {
-  description = "A pure Haskell AEAD-ChaCha20-Poly1305 construction.";
+  description = "A fast Haskell AEAD-ChaCha20-Poly1305 construction.";
 
   inputs = {
     ppad-base16 = {
