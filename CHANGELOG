@@ -1,5 +1,13 @@
 # Changelog
 
+- 0.3.7 (2026-10-31)
+  * Bumps the ppad-poly1305 dependency to 0.4.7, which picks up
+    ppad-fixed 0.2.1. Under the llvm flag on x86_64, both are compiled
+    with LLVM's x86 cmov converter off
+    (-optlc=-x86-cmov-converter=false). This library is compiled
+    likewise, as ppad-fixed's constant-time arithmetic can be inlined
+    into it.
+
 - 0.3.6 (2026-09-06)
   * Merely bumps the ppad-chacha dependency.
 
