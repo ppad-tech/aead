@@ -1,5 +1,12 @@
 # Changelog
 
+- 0.3.8 (2026-10-31)
+  * Bumps the ppad-chacha and ppad-poly1305 dependencies to 0.3.1 and
+    0.4.8, which add native kernels on x86_64: SSE2 and AVX2 for
+    ChaCha20, and scalar C and AVX2 for Poly1305, with AVX2 detected
+    at runtime. On x86_64 CPUs with AVX2, 'encrypt' and 'decrypt' are
+    roughly 3.5x faster.
+
 - 0.3.7 (2026-10-31)
   * Bumps the ppad-poly1305 dependency to 0.4.7, which picks up
     ppad-fixed 0.2.1. Under the llvm flag on x86_64, both are compiled
